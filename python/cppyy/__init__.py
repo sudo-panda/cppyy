@@ -197,6 +197,7 @@ class _stderr_capture(object):
 def cppdef(src):
     """Declare C++ source <src> to Cling."""
     with _stderr_capture() as err:
+        print(src)
         errcode = gbl.cling.runtime.gCling.declare(src)
     if not errcode:
         raise SyntaxError('Failed to parse the given C++ code%s' % err.err)
