@@ -62,6 +62,8 @@ def cpp2numba(val):
     if type(val) != str:
         # TODO: distinguish ptr/ref/byval
         return typeof_scope(val, nb_typing.typeof.Purpose.argument, Qualified.value)
+    if val[-1] == '&':
+        return nb_types.CPointer(_cpp2numba[val[:-1]])
     return _cpp2numba[val]
 
 _numba2cpp = dict()
@@ -533,3 +535,37 @@ def typeof_instance(val, c):
         pass
 
     return typeof_scope(type(val), c, Qualified.default)
+
+
+@nb_tmpl.infer
+class StaticGetCppType(nb_tmpl.AbstractTemplate):
+    key = "static_getitem"
+
+    def generic(self, args, kws):
+        obj, idx = args
+        if  isinstance(obj, CppClassNumbaType) and \
+                hasattr(obj._scope, '_getitem__unchecked') and \
+                    isinstance(idx, int):
+            f = CppFunctionNumbaType(obj._scope._getitem__unchecked, True)
+
+            sig = f.get_call_type(None, (numba.types.literal(idx),), dict())
+
+            registry = nb_iutils.builtin_registry
+
+            args = (nb_types.voidptr, *sig.args)
+            extsgn = nb_typing.Signature(
+                return_type=sig.return_type, args=args, recvr=None)
+
+            @registry.lower("static_getitem", obj, numba.types.literal(idx))
+            def lower_external_call(context, builder, sig, args,
+                    ty=nb_types.ExternalFunctionPointer(extsgn, f.get_impl_key(extsgn).get_pointer), pyval=f.key, is_method=True):
+                args = (builder.bitcast(args[0], ir_voidptr), ir.Constant(ir.IntType(64), args[1]))
+                ptrty = context.get_function_pointer_type(ty)
+                ptrval = context.add_dynamic_addr(
+                    builder, ty.get_pointer(pyval), info=str(pyval))
+                fptr = builder.bitcast(ptrval, ptrty)
+                func_call = context.call_function_pointer(builder, fptr, args)
+                print(func_call)
+                return func_call
+
+            return sig
