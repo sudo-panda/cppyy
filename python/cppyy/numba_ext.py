@@ -15,6 +15,8 @@ import numba.core.typing.templates as nb_tmpl
 import numba.core.types as nb_types
 import numba.core.typing as nb_typing
 
+import ctypes
+
 from llvmlite import ir
 
 
@@ -58,12 +60,95 @@ _cpp2numba = {
     'double'                 : nb_types.float64,
 }
 
+class CppReference(object):
+    """
+    A python object equivalent to reference types in C++
+    """
+    def __init__(self, ptr):
+        self.ptr = ptr
+        self.type = ctypes.POINTER(ctypes.c_float) # TODO: make this general
+        self.data = ctypes.cast(self.ptr, self.type).contents
+
+    def __repr__(self):
+        return 'CppReference(%i)' % (self.ptr)
+
+class CppReferenceType(nb_types.Type):
+    """
+    Type class for references to other types.
+
+    Attributes
+    ----------
+        dtype : The referenced type
+    """
+    mutable = True
+
+    def __init__(self, dtype):
+        self.dtype = dtype
+        name = "%s&" % dtype
+        super(CppReferenceType, self).__init__(name)
+
+    @property
+    def key(self):
+        return self.dtype
+
+@nb_ext.typeof_impl.register(CppReference)
+def typeof_index(val, c):
+    return CppReferenceType(numba.typeof(val))
+
+@nb_ext.type_callable(CppReference)
+def type_interval(context):
+    def typer(ptr):
+        if isinstance(ptr, nb_types.CPointer):
+            return CppReferenceType(numba.typeof(ptr).dtype)
+    return typer
+
+@nb_ext.register_model(CppReferenceType)
+class CppReferenceModel(nb_ext.models.PrimitiveModel):
+    def __init__(self, dmm, fe_type):
+        self._pointee_model = dmm.lookup(fe_type.dtype)
+        self._pointee_be_type = self._pointee_model.get_data_type()
+        be_type = self._pointee_be_type.as_pointer()
+        super(CppReferenceModel, self).__init__(dmm, fe_type, be_type)
+
+nb_ext.make_attribute_wrapper(CppReferenceType, 'ptr', 'ptr')
+
+@nb_ext.lower_builtin(CppReference, nb_types.CPointer)
+def impl_cpp_reference(context, builder, sig, args):
+    typ = sig.return_type
+    ptr = args[0]
+    return ptr
+
+@nb_ext.box(CppReferenceType)
+def box_cpp_reference(typ, val, c):
+    """
+    Convert a native cpp reference structure to an CppReference object.
+    """
+    print("Val:", val, "Type:", typ)
+    ptr_cast = c.builder.bitcast(val, ir_voidptr)
+    ptr_obj = c.pyapi.long_from_voidptr(ptr_cast)
+    class_obj = c.pyapi.unserialize(c.pyapi.serialize_object(CppReference))
+    res = c.pyapi.call_function_objargs(class_obj, (ptr_obj, ))
+    c.pyapi.decref(ptr_obj)
+    c.pyapi.decref(class_obj)
+    return res
+
+@nb_ext.unbox(CppReferenceType)
+def unbox_cpp_reference(typ, obj, c):
+    """
+    Convert a CppReference object to a native cpp reference structure.
+    """
+    ptr_obj = c.pyapi.object_getattr_string(obj, "ptr")
+    ptr = c.pyapi.long_as_voidptr(ptr_obj)
+    c.pyapi.decref(ptr_obj)
+    is_error = nb_cgu.is_not_null(c.builder, c.pyapi.err_occurred())
+    return nb_ext.NativeValue(ptr, is_error=is_error)
+
 def cpp2numba(val):
     if type(val) != str:
         # TODO: distinguish ptr/ref/byval
         return typeof_scope(val, nb_typing.typeof.Purpose.argument, Qualified.value)
     if val[-1] == '&':
-        return nb_types.CPointer(_cpp2numba[val[:-1]])
+        return CppReferenceType(_cpp2numba[val[:-1]])
     return _cpp2numba[val]
 
 _numba2cpp = dict()
@@ -565,7 +650,6 @@ class StaticGetCppType(nb_tmpl.AbstractTemplate):
                     builder, ty.get_pointer(pyval), info=str(pyval))
                 fptr = builder.bitcast(ptrval, ptrty)
                 func_call = context.call_function_pointer(builder, fptr, args)
-                print(func_call)
                 return func_call
 
             return sig
