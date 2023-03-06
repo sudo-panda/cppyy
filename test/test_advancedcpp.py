@@ -162,8 +162,8 @@ class TestADVANCEDCPP:
         import cppyy
         gbl = cppyy.gbl
 
-        lib2 = cppyy.load_library("advancedcpp2")
-        lib2 = cppyy.include("advancedcpp2")
+        lib2 = cppyy.load_library("advancedcpp2Dict.so")
+        lib2 = cppyy.include("advancedcpp2.h")
 
         assert gbl.a_ns      is gbl.a_ns
         assert gbl.a_ns.d_ns is gbl.a_ns.d_ns
