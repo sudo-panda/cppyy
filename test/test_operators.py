@@ -17,7 +17,6 @@ class TestOPERATORS:
         import cppyy
         cls.operators = cppyy.load_library(cls.test_dct)
         cppyy.include(cls.test_h)
-        cls.N = cppyy.gbl.N
 
     def teardown_method(self, meth):
         import gc
