@@ -1,3 +1,6 @@
+#ifndef FRAGILE_H
+#define FRAGILE_H
+
 #include <cstdint>
 
 
@@ -140,3 +143,5 @@ void sigabort();
 int add42(int i);
 
 } // namespace fragile
+
+#endif // FRAGILE_H
