@@ -16,7 +16,8 @@ dicts = advancedcppDict.so \
 
 all : $(dicts)
 
-cppflags=$(shell cling-config --cppflags) -std=c++11 -O3 -fPIC -I$(shell python -c 'import sysconfig as sc; print(sc.get_config_var("INCLUDEPY"))') -Wno-register
+# cppflags=$(shell cling-config --cppflags) -std=c++17 -O3 -fPIC -I$(shell python -c 'import sysconfig as sc; print(sc.get_config_var("INCLUDEPY"))') -Wno-register
+cppflags=-std=c++17 -O3 -fPIC -I$(shell python -c 'import sysconfig as sc; print(sc.get_config_var("INCLUDEPY"))') -Wno-register
 
 PLATFORM := $(shell uname -s)
 ifeq ($(PLATFORM),Darwin)
