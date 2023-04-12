@@ -291,7 +291,6 @@ class TestSTLVECTOR:
         assert len(v) == self.N
         v.__destruct__()
 
-    @mark.xfail
     def test03_empty_vector_type(self):
         """Test behavior of empty std::vector<int>"""
 
@@ -437,7 +436,6 @@ class TestSTLVECTOR:
             ve[0] = cppyy.gbl.VecTestEnumNS.EVal2
             assert ve[0] == 42
 
-    @mark.xfail
     def test09_vector_of_string(self):
         """Adverse effect of implicit conversion on vector<string>"""
 
@@ -624,7 +622,6 @@ class TestSTLVECTOR:
 
         constructors_cpython_test(cppyy.gbl.std.vector[int])
 
-    @mark.xfail
     def test17_vector_cpp17_style(self):
         """C++17 style initialization of std::vector"""
 
@@ -1232,7 +1229,6 @@ class TestSTLMAP:
 
         assert len(a) == self.N
 
-    @mark.xfail
     def test03_empty_maptype(self):
         """Test behavior of empty map<int,int>"""
 
@@ -1940,7 +1936,6 @@ class TestSTLEXCEPTION:
         cls.stltypes = cppyy.load_library(cls.test_dct)
         cppyy.include(cls.test_h)
 
-    @mark.xfail
     def test01_basics(self):
         """Test behavior of std::exception derived classes"""
 
