@@ -1,6 +1,6 @@
 import py, os, sys
 from pytest import raises, mark
-from .support import setup_make, ispypy
+from .support import setup_make, ispypy, IS_CLANG_REPL
 
 
 currpath = py.path.local(__file__).dirpath()
@@ -15,7 +15,8 @@ class TestCPP11FEATURES:
         import cppyy
         cls.cpp11features = cppyy.load_reflection_info(cls.test_dct)
 
-    @mark.xfail
+    @mark.xfail(condition=(not IS_CLANG_REPL), reason="Fails on Cling")
+    @mark.crashes(condition=IS_CLANG_REPL, reason="Valgrind report")
     def test01_smart_ptr(self):
         """Usage and access of std::shared/unique_ptr<>"""
 
@@ -44,7 +45,8 @@ class TestCPP11FEATURES:
             gc.collect()
             assert TestSmartPtr.s_counter == 0
 
-    @mark.xfail
+    @mark.crashes(condition=IS_CLANG_REPL, reason="Valgrind reports and crashes in ClangRepl")
+    @mark.xfail(condition=(not IS_CLANG_REPL), reason="Fails on Cling")
     def test02_smart_ptr_construction(self):
         """Shared/Unique pointer ctor is templated, requiring special care"""
 
@@ -72,7 +74,8 @@ class TestCPP11FEATURES:
             gc.collect()
             assert TestSmartPtr.s_counter == 0
 
-    @mark.xfail
+    @mark.crashes(condition=IS_CLANG_REPL, reason="Valgrind reports and crashes in ClangRepl")
+    @mark.xfail(condition=(not IS_CLANG_REPL), reason="Fails on Cling")
     def test03_smart_ptr_memory_handling(self):
         """Test shared/unique pointer memory ownership"""
 
@@ -103,7 +106,8 @@ class TestCPP11FEATURES:
             gc.collect()
             assert TestSmartPtr.s_counter == 0
 
-    @mark.xfail
+    @mark.crashes(condition=IS_CLANG_REPL, reason="Valgrind reports and crashes in ClangRepl")
+    @mark.xfail(condition=(not IS_CLANG_REPL), reason="Fails on Cling")
     def test04_shared_ptr_passing(self):
         """Ability to pass shared_ptr<Derived> through shared_ptr<Base>"""
 
@@ -143,7 +147,8 @@ class TestCPP11FEATURES:
         gc.collect()
         assert TestSmartPtr.s_counter == 0
 
-    @mark.xfail
+    @mark.crashes(condition=IS_CLANG_REPL, reason="Valgrind reports and crashes in ClangRepl")
+    @mark.xfail(condition=(not IS_CLANG_REPL), reason="Fails on Cling")
     def test05_unique_ptr_passing(self):
         """Ability to pass unique_ptr<Derived> through unique_ptr<Base>"""
 
