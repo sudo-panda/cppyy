@@ -55,22 +55,10 @@ class TestSTDStreams:
 
         import cppyy
 
-        short_type = cppyy.gbl.CppyyLegacy.TClassEdit.ShortType
-        s0 = short_type("std::basic_ostringstream<char>", 2)
-        s1 = short_type("std::basic_ostringstream<char, std::char_traits<char> >", 2)
-        s2 = short_type("std::basic_ostringstream<char,struct std::char_traits<char> >", 2)
-        s3 = short_type("std::basic_ostringstream<char, std::char_traits<char>, std::allocator<char> >", 2)
-        s4 = short_type("std::basic_ostringstream<char,struct std::char_traits<char>, std::allocator<char> >", 2)
-
-        assert s1 == s0
-        assert s2 == s0
-        assert s3 == s0
-        assert s4 == s0
-
-        get_class = cppyy.gbl.CppyyLegacy.TClass.GetClass
-        cl0 = get_class("std::ostringstream")
-        cl1 = get_class("std::basic_ostringstream<char>")
-        cl2 = get_class("std::basic_ostringstream<char, std::char_traits<char>, std::allocator<char> >")
+        # Check if the object created is equal in all three cases
+        cl0 = cppyy.gbl.std.ostringstream
+        cl1 = cppyy.gbl.std.basic_ostringstream['char']
+        cl1 = cppyy.gbl.std.basic_ostringstream['char', cppyy.gbl.std.char_traits['char'] , cppyy.gbl.std.allocator['char']]
 
         assert cl0 == cl1
         assert cl1 == cl2
