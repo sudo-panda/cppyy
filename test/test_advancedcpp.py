@@ -850,6 +850,7 @@ class TestADVANCEDCPP:
         assert cppyy.gbl.UserDirs.bar()  == cppyy.gbl.UsedSpace2.bar()
         assert cppyy.gbl.UserDirs.foo2() == cppyy.gbl.UsedSpace1.inner.foo2()
 
+    @mark.xfail(reason="See https://github.com/compiler-research/CppInterOp/pull/93")
     def test27_shadowed_typedef(self):
         """Test that typedefs are not shadowed"""
 
