@@ -145,6 +145,7 @@ class TestFRAGILE:
 
         g = fragile.G()
 
+    @mark.xfail(run=not IS_CLANG_REPL, reason="Crashes on ClangRepl")
     def test08_unhandled_scoped_datamember(self):
         """Test that an unhandled scoped data member does not cause infinite recursion"""
 
