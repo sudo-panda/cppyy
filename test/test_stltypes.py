@@ -997,7 +997,7 @@ class TestSTLSTRING:
         assert s.rfind('c')  < 0
         assert s.rfind('c') == s.npos
 
-    @mark.xfail
+    @mark.xfail(run=not IS_CLANG_DEBUG, reason="Crashes with ClangRepl with 'toString not implemented'")
     def test10_string_in_repr_and_str_bytes(self):
         """Special cases for __str__/__repr__"""
 
