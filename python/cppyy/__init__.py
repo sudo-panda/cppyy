@@ -127,7 +127,7 @@ def _standard_pythonizations(pyclass, name):
 
   # pythoniztion of std::string; placed here because it's simpler to write the
   # custom "npos" object (to allow easy result checking of find/rfind) in Python
-    elif pyclass.__cpp_name__ == "std::string":
+    elif pyclass.__cpp_name__ == "std::basic_string<char>":
         class NPOS(0x3000000 <= sys.hexversion and int or long):
             def __eq__(self, other):
                 return other == -1 or  int(self) == other
