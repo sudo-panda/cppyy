@@ -133,7 +133,6 @@ def _standard_pythonizations(pyclass, name):
                 return other == -1 or  int(self) == other
             def __ne__(self, other):
                 return other != -1 and int(self) != other
-        del pyclass.__class__.npos          # drop b/c is const data
         pyclass.npos = NPOS(pyclass.npos)
 
     return True
