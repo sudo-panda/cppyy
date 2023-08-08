@@ -226,6 +226,7 @@ class TestLOWLEVEL:
         # types are allowed to pass; this tests allocation into the pointer)
 
         from ctypes import POINTER
+        import cppyy.ll
 
       # boolean type
         b = POINTER(ctypes.c_bool)();     ctd.set_bool_ppa(b);
